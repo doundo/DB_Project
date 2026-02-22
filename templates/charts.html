@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>인기 차트</title>
+</head>
+<body>
+    <nav>
+        <h1>Music Log</h1>
+        <ul>
+            {% if g.user %}
+                <li><a href="{{ url_for('profile') }}"><strong>{{ g.user['user_name'] }}</strong></a></li>
+                <li><a href="{{ url_for('charts') }}">Charts</a></li>
+                <li><a href="{{ url_for('logout') }}">Log Out</a>
+            {% else %}
+                <li><a href="{{ url_for('register') }}">Register</a>
+                <li><a href="{{ url_for('login') }}">Log In</a>
+            {% endif %}
+        </ul>
+    </nav>
+    <hr>
+    
+    <h2>🏆 인기 차트</h2>
+
+    <div style="display: flex; gap: 40px;">
+        <div style="flex: 1;">
+            <h3>Top 10 최고 평점 노래</h3>
+            {% if top_songs %}
+            <table border="1">
+                <tr>
+                    <th>순위</th>
+                    <th>제목</th>
+                    <th>아티스트</th>
+                    <th>평균 평점</th>
+                    <th>평가 수</th>
+                </tr>
+                {% for song in top_songs %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td><a href="{{ url_for('view_song', id=song['id']) }}">{{ song['song_name'] }}</a></td>
+                    <td><a href="{{ url_for('view_artist', artist_id=song['artist_id']) }}">{{ song['artist_name'] }}</a></td>
+                    <td>{{ "%.2f"|format(song['avg_score']|float) }}</td>
+                    <td>{{ song['rating_count'] }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+            <p>데이터가 부족하여 순위를 집계할 수 없습니다.</p>
+            {% endif %}
+        </div>
+
+        <div style="flex: 1;">
+            <h3>Top 10 인기 아티스트 (평가 많은 순)</h3>
+            {% if top_artists %}
+            <table border="1">
+                <tr>
+                    <th>순위</th>
+                    <th>아티스트</th>
+                    <th>총 평가 수</th>
+                </tr>
+                {% for artist in top_artists %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td><a href="{{ url_for('view_artist', artist_id=artist['id']) }}">{{ artist['artist_name'] }}</a></td>
+                    <td>{{ artist['rating_count'] }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+            <p>데이터가 부족하여 순위를 집계할 수 없습니다.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <hr style="margin-top: 20px;">
+    <a href="/">[홈으로 돌아가기]</a>
+</body>
+</html>

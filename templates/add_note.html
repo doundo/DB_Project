@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>노트 추가</title>
+</head>
+<body>
+    <h2>📝 노트 추가</h2>
+    <form method="post">
+        <p>
+            <label for="note">노트 내용:</label><br>
+            <textarea id="note" name="note" rows="8" cols="70" required></textarea>
+        </p>
+        <p>
+            <label for="hashtags">해시태그 (쉼표로 구분):</label><br>
+            <input type="text" id="hashtags" name="hashtags" size="70">
+        </p>
+        <p>
+            <button type="submit">노트 등록</button>
+        </p>
+    </form>
+    <a href="{{ url_for('view_song', id=entity_id) }}">[취소하고 상세 페이지로 돌아가기]</a>
+</body>
+</html>

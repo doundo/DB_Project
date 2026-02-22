@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>노래 추가</title>
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <style>
+        /* Select2 컨테이너 너비 조정 */
+        .select2-container {
+            width: 350px !important;
+        }
+    </style>
+</head>
+<body>
+    <h2>🎵 노래 추가</h2>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul class=flashes>
+        {% for message in messages %}
+          <li style="color: red;">{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+    <form action="{{ url_for('add_song') }}" method="post">
+        <p>
+            <label for="artist_id_search">아티스트 선택 (검색):</label><br>
+            <select id="artist_id_search" name="artist_id" required></select>
+        </p>
+        <p>
+            <label for="album_id_search">앨범 선택 (검색):</label><br>
+            <select id="album_id_search" name="album_id" required></select>
+        </p>
+        <p>
+            <label for="song_name">노래 제목:</label><br>
+            <input type="text" id="song_name" name="song_name" required size="50">
+        </p>
+        <p>
+            <label for="release_date">노래 발매일 (선택):</label><br>
+            <input type="date" id="release_date" name="release_date">
+        </p>
+        <fieldset style="margin-top: 15px;">
+            <legend>첫 평점 남기기 (선택)</legend>
+            <p>
+                점수: 
+                <select name="score">
+                    <option value="">-- 선택 안함 --</option>
+                    <option value="5">5점 (최고)</option>
+                    <option value="4">4점</option>
+                    <option value="3">3점</option>
+                    <option value="2">2점</option>
+                    <option value="1">1점</option>
+                </select>
+            </p>
+            <p>
+                리뷰 (노트):<br>
+                <textarea name="review" rows="4" a-cols="50"></textarea>
+            </p>
+        </fieldset>
+        <p>
+            <button type="submit">노래 등록</button>
+        </p>
+    </form>
+    <a href="{{ url_for('index') }}">[목록으로 돌아가기]</a>
+
+    <!-- jQuery and Select2 JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Artist Search
+            var artistSelect = $('#artist_id_search');
+            var albumSelect = $('#album_id_search');
+
+            artistSelect.select2({
+                placeholder: "-- 검색하여 아티스트 선택 --",
+                allowClear: true,
+                ajax: {
+                    url: "{{ url_for('search_artists') }}",
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return { q: params.term };
+                    },
+                    processResults: function (data) {
+                        return { results: data };
+                    },
+                    cache: true
+                }
+            });
+
+            // Album Search
+            albumSelect.select2({
+                placeholder: "-- 아티스트를 먼저 선택하세요 --",
+                allowClear: true,
+                ajax: {
+                    url: "{{ url_for('search_albums') }}",
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        // Get the selected artist ID
+                        var artistId = artistSelect.val();
+                        return {
+                            q: params.term,
+                            artist_id: artistId // Send artist_id to the server
+                        };
+                    },
+                    processResults: function (data) {
+                        return { results: data };
+                    },
+                    cache: true
+                }
+            });
+
+            // When an artist is selected or cleared
+            artistSelect.on('change', function() {
+                // Clear the selected album
+                albumSelect.val(null).trigger('change');
+
+                var artistId = $(this).val();
+                if (artistId) {
+                    // If an artist is selected, update placeholder and enable search
+                    albumSelect.select2('destroy').select2({
+                        placeholder: "-- 검색하여 앨범 선택 --",
+                        allowClear: true,
+                        ajax: {
+                            url: "{{ url_for('search_albums') }}",
+                            dataType: 'json',
+                            delay: 250,
+                            data: function (params) {
+                                return {
+                                    q: params.term,
+                                    artist_id: artistSelect.val()
+                                };
+                            },
+                            processResults: function (data) {
+                                return { results: data };
+                            },
+                            cache: true
+                        }
+                    });
+                } else {
+                    // If no artist is selected, revert to the initial placeholder
+                    albumSelect.select2('destroy').select2({
+                        placeholder: "-- 아티스트를 먼저 선택하세요 --",
+                         allowClear: true,
+                    });
+                }
+            });
+             // 초기 로드 시 아티스트가 선택되지 않았으므로 플레이스홀더 설정
+            if (!artistSelect.val()) {
+                albumSelect.select2('destroy').select2({
+                    placeholder: "-- 아티스트를 먼저 선택하세요 --",
+                     allowClear: true,
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>로그인</title>
+</head>
+<body>
+    <h2>로그인</h2>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class=flashes>
+        {% for category, message in messages %}
+          <li class="{{ category }}" style="color: red;">{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+    <form method="post">
+        <p>
+            <label for="username">사용자 이름:</label><br>
+            <input type="text" id="username" name="username" required>
+        </p>
+        <p>
+            <label for="password">비밀번호:</label><br>
+            <input type="password" id="password" name="password" required>
+        </p>
+        <p>
+            <button type="submit">로그인</button>
+        </p>
+    </form>
+    <a href="{{ url_for('register') }}">계정이 없으신가요? 회원가입</a>
+</body>
+</html>

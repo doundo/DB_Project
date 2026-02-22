@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>노트 추가</title>
+    <style>
+        #search-section, #note-form-section { display: none; }
+        .suggestion-item { padding: 8px; cursor: pointer; border-bottom: 1px solid #eee; }
+        .suggestion-item:hover { background-color: #f0f0f0; }
+        #suggestions { border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <nav>
+        <h1>Music Log</h1>
+        <ul>
+            {% if g.user %}
+                <li><a href="{{ url_for('profile') }}"><strong>{{ g.user['user_name'] }}</strong></a></li>
+                <li><a href="{{ url_for('charts') }}">Charts</a></li>
+                <li><a href="{{ url_for('logout') }}">Log Out</a>
+            {% else %}
+                <li><a href="{{ url_for('register') }}">Register</a></li>
+                <li><a href="{{ url_for('login') }}">Log In</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    <hr>
+    <h2>노트 추가</h2>
+
+    <!-- Step 1: Select Entity Type -->
+    <div id="entity-type-selection">
+        <h3>1. 어떤 항목에 노트를 추가하시겠습니까?</h3>
+        <input type="radio" name="entity_type" value="artist" id="type-artist"> <label for="type-artist">아티스트</label><br>
+        <input type="radio" name="entity_type" value="album" id="type-album"> <label for="type-album">앨범</label><br>
+        <input type="radio" name="entity_type" value="song" id="type-song"> <label for="type-song">노래</label><br>
+    </div>
+
+    <!-- Step 2: Search for the item -->
+    <div id="search-section">
+        <h3>2. 항목 검색</h3>
+        <p><strong>선택된 항목:</strong> <span id="selected-item-name"></span></p>
+        <input type="text" id="search-input" placeholder="검색..." autocomplete="off">
+        <div id="suggestions"></div>
+    </div>
+
+    <!-- Step 3: Add Note and Hashtags -->
+    <div id="note-form-section">
+        <h3>3. 노트 작성</h3>
+        <form id="note-form" method="POST">
+            <input type="hidden" name="entity_id" id="entity_id">
+            <textarea name="note" rows="4" cols="50" required placeholder="노트 내용 입력..."></textarea><br><br>
+            <input type="text" name="hashtags" placeholder="해시태그 (쉼표로 구분)"><br><br>
+            <button type="submit">노트 저장</button>
+        </form>
+    </div>
+
+    <hr style="margin-top: 20px;">
+    <a href="/">[목록으로]</a>
+
+<script>
+    const entityTypeRadios = document.querySelectorAll('input[name="entity_type"]');
+    const searchSection = document.getElementById('search-section');
+    const noteFormSection = document.getElementById('note-form-section');
+    const searchInput = document.getElementById('search-input');
+    const suggestionsPanel = document.getElementById('suggestions');
+    const selectedItemName = document.getElementById('selected-item-name');
+    const noteForm = document.getElementById('note-form');
+    const entityIdInput = document.getElementById('entity_id');
+
+    let selectedEntityType = null;
+    let selectedEntityId = null;
+
+    // --- Event Listener for Step 1 ---
+    entityTypeRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            selectedEntityType = this.value;
+            searchSection.style.display = 'block';
+            noteFormSection.style.display = 'none';
+            searchInput.value = '';
+            suggestionsPanel.innerHTML = '';
+            selectedItemName.textContent = '아직 선택되지 않음';
+            searchInput.placeholder = `${this.nextElementSibling.textContent} 이름 검색...`;
+        });
+    });
+
+    // --- Event Listener for Step 2 (Search) ---
+    searchInput.addEventListener('keyup', function() {
+        const query = this.value;
+        if (query.length < 1) {
+            suggestionsPanel.innerHTML = '';
+            return;
+        }
+
+        let apiUrl = '';
+        if (selectedEntityType === 'artist') {
+            apiUrl = `/api/search/artists?q=${query}`;
+        } else if (selectedEntityType === 'album') {
+            // The album search API needs to be implemented
+            // For now, let's assume it's /api/search/albums
+            apiUrl = `/api/search/albums?q=${query}`;
+        } else if (selectedEntityType === 'song') {
+            apiUrl = `/api/search/songs?q=${query}`;
+        } else {
+            return;
+        }
+
+        fetch(apiUrl)
+            .then(response => response.json())
+            .then(data => {
+                suggestionsPanel.innerHTML = '';
+                if (data.length > 0) {
+                    data.forEach(item => {
+                        const div = document.createElement('div');
+                        div.className = 'suggestion-item';
+                        div.textContent = item.text;
+                        div.onclick = () => {
+                            selectItem(item.id, item.text);
+                        };
+                        suggestionsPanel.appendChild(div);
+                    });
+                } else {
+                    suggestionsPanel.innerHTML = '<div class="suggestion-item">검색 결과가 없습니다.</div>';
+                }
+            })
+            .catch(error => console.error('Search error:', error));
+    });
+
+    function selectItem(id, name) {
+        selectedEntityId = id;
+        selectedItemName.textContent = name;
+        suggestionsPanel.innerHTML = '';
+        searchInput.value = name;
+        
+        // Show Step 3
+        noteFormSection.style.display = 'block';
+        entityIdInput.value = selectedEntityId;
+        
+        // Set the form action URL dynamically
+        noteForm.action = `/add-note/${selectedEntityType}/${selectedEntityId}`;
+    }
+
+</script>
+</body>
+</html>

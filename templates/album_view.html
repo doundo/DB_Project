@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ album['album_name'] }} - 앨범 정보</title>
+</head>
+<body>
+    <nav>
+        <h1>Music Log</h1>
+        <ul>
+            {% if g.user %}
+                <li><a href="{{ url_for('profile') }}"><strong>{{ g.user['user_name'] }}</strong></a></li>
+                <li><a href="{{ url_for('charts') }}">Charts</a></li>
+                <li><a href="{{ url_for('logout') }}">Log Out</a>
+            {% else %}
+                <li><a href="{{ url_for('register') }}">Register</a>
+                <li><a href="{{ url_for('login') }}">Log In</a>
+            {% endif %}
+        </ul>
+    </nav>
+    <hr>
+    
+    <h2>💿 {{ album['album_name'] }}</h2>
+    <p><strong>아티스트:</strong> <a href="{{ url_for('view_artist', artist_id=album['artist_id']) }}">{{ album['artist_name'] }}</a></p>
+    {% if album.release_date %}
+    <p><strong>발매일:</strong> {{ album['release_date'] }}</p>
+    {% endif %}
+
+    <hr>
+
+    <h3>수록곡</h3>
+    <ul>
+        {% for song in songs %}
+        <li><a href="{{ url_for('view_song', id=song['id']) }}">{{ song['song_name'] }}</a></li>
+        {% else %}
+        <li>아직 등록된 노래가 없습니다.</li>
+        {% endfor %}
+    </ul>
+
+    <hr style="margin-top: 20px;">
+
+    <h3>📝 이 앨범에 대한 노트</h3>
+    {% if g.user %}
+    <a href="{{ url_for('add_note', entity_type='album', entity_id=album['id']) }}">[+ 노트 추가]</a>
+    {% endif %}
+    <div id="notes-section" style="margin-top: 10px;">
+        {% if notes_with_hashtags %}
+            {% for item in notes_with_hashtags %}
+                <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
+                    <p><strong>작성자: {{ item['user_name'] }}</strong> ({{ item['created_at'].strftime('%Y-%m-%d') }})</p>
+                    <p>{{ item['note']|replace('\n', '<br>')|safe }}</p>
+                    {% if item.hashtags %}
+                        <p style="color: #555;">
+                            <strong>해시태그:</strong>
+                            {% for tag in item.hashtags.split(',') %}
+                                <a href="{{ url_for('view_hashtag', hashtag_name=tag.strip()) }}" style="background-color: #eee; padding: 2px 5px; border-radius: 5px; font-size: 0.9em; text-decoration: none; color: inherit;">#{{ tag.strip() }}</a>
+                            {% endfor %}
+                        </p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>아직 작성된 노트가 없습니다.</p>
+        {% endif %}
+    </div>
+
+    <a href="/">[목록으로]</a>
+</body>
+</html>

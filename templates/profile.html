@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ g.user['user_name'] }}님의 프로필</title>
+</head>
+<body>
+    <nav>
+        <h1>Music Log</h1>
+        <ul>
+            {% if g.user %}
+                <li><a href="{{ url_for('profile') }}"><strong>{{ g.user['user_name'] }}</strong></a></li>
+                <li><a href="{{ url_for('charts') }}">Charts</a></li>
+                <li><a href="{{ url_for('logout') }}">Log Out</a>
+            {% else %}
+                <li><a href="{{ url_for('register') }}">Register</a>
+                <li><a href="{{ url_for('login') }}">Log In</a>
+            {% endif %}
+        </ul>
+    </nav>
+    <hr>
+    
+    <h2>👤 {{ g.user['user_name'] }}님의 프로필</h2>
+
+    <h3>활동 요약</h3>
+    {% if activity %}
+    <ul>
+        <li>총 남긴 평점: <strong>{{ activity['p_total_ratings'] }}</strong>개</li>
+        <li>평균적으로 부여한 점수: <strong>{{ "%.1f"|format(activity['p_avg_score']|float) }}</strong>점</li>
+        {% if activity.p_last_rated_song_id %}
+        <li>가장 최근에 평가한 노래: <a href="{{ url_for('view_song', id=activity.p_last_rated_song_id) }}">{{ activity.p_last_rated_song_name }}</a></li>
+        {% endif %}
+    </ul>
+    {% else %}
+    <p>아직 활동 내역이 없습니다.</p>
+    {% endif %}
+
+    <hr>
+    <a href="/">[홈으로 돌아가기]</a>
+</body>
+</html>

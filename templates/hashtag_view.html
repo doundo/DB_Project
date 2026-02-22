@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>#{{ hashtag_name }} - 해시태그 검색 결과</title>
+</head>
+<body>
+    <nav>
+        <h1>Music Log</h1>
+        <ul>
+            {% if g.user %}
+                <li><a href="{{ url_for('profile') }}"><strong>{{ g.user['user_name'] }}</strong></a></li>
+                <li><a href="{{ url_for('charts') }}">Charts</a></li>
+                <li><a href="{{ url_for('logout') }}">Log Out</a>
+            {% else %}
+                <li><a href="{{ url_for('register') }}">Register</a>
+                <li><a href="{{ url_for('login') }}">Log In</a>
+            {% endif %}
+        </ul>
+    </nav>
+    <hr>
+    
+    <h2>#{{ hashtag_name }}</h2>
+
+    <hr>
+
+    <h3>🎵 이 해시태그를 포함하는 노래</h3>
+    <ul>
+        {% for song in songs %}
+        <li>
+            <a href="{{ url_for('view_song', id=song.id) }}">{{ song.song_name }}</a> 
+            by <a href="{{ url_for('view_artist', artist_id=song.artist_id) }}">{{ song.artist_name }}</a>
+            {% if song.album_name %}
+            (앨범: <a href="{{ url_for('view_album', album_id=song.album_id) }}">{{ song.album_name }}</a>)
+            {% endif %}
+        </li>
+        {% else %}
+        <li>이 해시태그를 포함하는 노래가 없습니다.</li>
+        {% endfor %}
+    </ul>
+
+    <hr style="margin-top: 20px;">
+    <a href="/">[목록으로]</a>
+</body>
+</html>

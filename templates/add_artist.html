@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>아티스트 추가</title>
+</head>
+<body>
+    <h2>🎤 아티스트 추가</h2>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul class=flashes>
+        {% for message in messages %}
+          <li style="color: red;">{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+    <form action="{{ url_for('add_artist') }}" method="post">
+        <p>
+            <label for="artist_name">아티스트 이름:</label><br>
+            <input type="text" id="artist_name" name="artist_name" required size="50">
+        </p>
+        <p>
+            <label for="info">아티스트 정보 (선택):</label><br>
+            <textarea id="info" name="info" rows="5" cols="50"></textarea>
+        </p>
+        <p>
+            <button type="submit">아티스트 등록</button>
+        </p>
+    </form>
+    <a href="{{ url_for('index') }}">[목록으로 돌아가기]</a>
+</body>
+</html>

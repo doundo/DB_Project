@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>앨범 추가</title>
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <style>
+        /* Select2 컨테이너 너비 조정 */
+        .select2-container {
+            width: 350px !important;
+        }
+    </style>
+</head>
+<body>
+    <h2>💿 앨범 추가</h2>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul class=flashes>
+        {% for message in messages %}
+          <li style="color: red;">{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+    <form action="{{ url_for('add_album') }}" method="post">
+        <p>
+            <label for="artist_id_search">아티스트 선택 (검색):</label><br>
+            <select id="artist_id_search" name="artist_id" required></select>
+        </p>
+        <p>
+            <label for="album_name">앨범 이름:</label><br>
+            <input type="text" id="album_name" name="album_name" required size="50">
+        </p>
+        <p>
+            <label for="release_date">발매일 (선택):</label><br>
+            <input type="date" id="release_date" name="release_date">
+        </p>
+        <p>
+            <button type="submit">앨범 등록</button>
+        </p>
+    </form>
+    <a href="{{ url_for('index') }}">[목록으로 돌아가기]</a>
+
+    <!-- jQuery and Select2 JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#artist_id_search').select2({
+                placeholder: "-- 검색하여 아티스트 선택 --",
+                ajax: {
+                    url: "{{ url_for('search_artists') }}",
+                    dataType: 'json',
+                    delay: 250, // 딜레이
+                    data: function (params) {
+                        return {
+                            q: params.term // 검색어
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data
+                        };
+                    },
+                    cache: true
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+

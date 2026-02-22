@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head><title>Music Log</title></head>
+<body>
+    <nav>
+        <h1>Music Log</h1>
+        <ul>
+            {% if g.user %}
+                <li><a href="{{ url_for('profile') }}"><strong>{{ g.user['user_name'] }}</strong></a></li>
+                <li><a href="{{ url_for('charts') }}">Charts</a></li>
+                <li><a href="{{ url_for('logout') }}">Log Out</a>
+            {% else %}
+                <li><a href="{{ url_for('register') }}">Register</a>
+                <li><a href="{{ url_for('login') }}">Log In</a>
+            {% endif %}
+        </ul>
+    </nav>
+    <hr>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul class=flashes>
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+    <h2>🎵 노래 목록</h2>
+    <div style="margin-bottom: 10px;">
+        <a href="{{ url_for('add_artist') }}">[아티스트 추가]</a>
+        <a href="{{ url_for('add_album') }}">[앨범 추가]</a>
+        <a href="{{ url_for('add_song') }}">[노래 추가]</a>
+        <a href="{{ url_for('add_note_flow') }}">[노트 추가]</a>
+    </div>
+
+    <!-- Hashtag Search Bar -->
+    <div style="margin-bottom: 20px;">
+        <h3># 해시태그 검색</h3>
+        <form id="hashtag-search-form">
+            <input type="text" id="hashtag-search" placeholder="해시태그 입력..." autocomplete="off">
+            <button type="submit">검색</button>
+        </form>
+        <div id="hashtag-suggestions" style="border: 1px solid #ccc; display: none;"></div>
+    </div>
+
+    <table border="1">
+        <tr><th>ID</th><th>제목</th><th>아티스트</th><th>앨범</th></tr>
+        {% for s in song_list %}
+        <tr>
+            <td>{{ s['id'] }}</td>
+            <td><a href="{{ url_for('view_song', id=s['id']) }}">{{ s['song_name'] }}</a></td>
+            <td><a href="{{ url_for('view_artist', artist_id=s['artist_id']) }}">{{ s['artist_name'] }}</a></td>
+            <td><a href="{{ url_for('view_album', album_id=s['album_id']) }}">{{ s['album_name'] }}</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+
+<script>
+    const searchForm = document.getElementById('hashtag-search-form');
+    const searchInput = document.getElementById('hashtag-search');
+    const suggestionsPanel = document.getElementById('hashtag-suggestions');
+
+    searchForm.addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent default form submission
+        const searchTerm = searchInput.value.trim().replace(/^#+/, ''); // Remove leading '#'
+        if (searchTerm) {
+            window.location.href = `/hashtag/${searchTerm}`;
+        }
+    });
+
+    searchInput.addEventListener('keyup', function() {
+        const input = searchInput.value;
+        if (input.length < 1) {
+            suggestionsPanel.style.display = 'none';
+            return;
+        }
+
+        fetch(`/api/search/hashtags?q=${input}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.length > 0) {
+                    suggestionsPanel.innerHTML = '';
+                    data.forEach(item => {
+                        const suggestion = document.createElement('div');
+                        suggestion.innerHTML = item.text;
+                        suggestion.style.padding = '8px';
+                        suggestion.style.cursor = 'pointer';
+                        suggestion.onclick = function() {
+                            searchInput.value = item.text;
+                            suggestionsPanel.style.display = 'none';
+                            searchInput.focus();
+                        };
+                        suggestionsPanel.appendChild(suggestion);
+                    });
+                    suggestionsPanel.style.display = 'block';
+                } else {
+                    suggestionsPanel.style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching hashtags:', error);
+                suggestionsPanel.style.display = 'none';
+            });
+    });
+
+    // Hide suggestions when clicking outside
+    document.addEventListener('click', function(event) {
+        if (!suggestionsPanel.contains(event.target) && event.target !== searchInput) {
+            suggestionsPanel.style.display = 'none';
+        }
+    });
+</script>
+</body>
+</html>
